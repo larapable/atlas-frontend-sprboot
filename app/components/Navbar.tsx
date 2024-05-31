@@ -1,23 +1,23 @@
+"use client";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { TiLocationArrowOutline } from "react-icons/ti";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   return (
-    <div className="fixed top-0 left-0 flex flex-col bg-[#8a252c] h-screen w-[18rem] py-5 overflow-auto gap-2"
-    // style={{
-    //   backgroundImage: `url('bgimagemaroon.png')`,
-    //   backgroundSize: 'cover',
-    //   backgroundPosition: 'center',
-    //   backgroundRepeat: 'no-repeat',
-    // }}
+    <div
+      className="fixed top-0 left-0 flex flex-col h-screen w-[18rem] py-5 overflow-auto gap-1"
+      style={{ background: "linear-gradient(to left, #8a252c, #AB3510)" }}
     >
       <div className="flex items-center justify-center">
         {/* ilisi nig atlasLogo  */}
-        <img src="/logo.png" alt="" className=" h-28 w-58 mt-4 mb-14 " />
+        <img src="/logo.png" alt="" className=" h-[8rem] mt-3 mb-5 mr-5" />
       </div>
-      <Link href="/">
+      <div className="w-[18rem] border-t border-white mb-5"></div>
+      {/* <Link href="/">
         <div className="mx-3 border-[0.1rem] border-solid border-transparent rounded-lg w-[16rem] h-14 mb-3 py-4 px-3 flex items-center text-white hover:bg-[#eec160] hover:text-[#8a252c] transition-colors duration-300">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +34,7 @@ export default function Navbar() {
             Dashboard
           </div>
         </div>
-      </Link>
+      </Link> */}
       <Link href="/profile">
         <div className="mx-3 border-[0.1rem] border-solid border-transparent rounded-lg w-[16rem] h-14 mb-3 py-4 px-3 flex items-center text-white hover:bg-[#eec160] hover:text-[#8a252c] transition-colors duration-300">
           <svg
@@ -166,6 +166,27 @@ export default function Navbar() {
           </div>
         </div>
       </Link>
+      <div className="w-[18rem] border-t border-white mb-5"></div>
+
+      <div className="flex flex-row text-white mx-3 hover:bg-[#eec160] hover:text-[#8a252c] transition-colors duration-300 items-center border-[0.1rem] border-solid border-transparent rounded-lg mb-3 px-3 h-14 ">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          className="w-8 h-8"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+          />
+        </svg>
+        <div className="flex-1 px-3 py-1 ml-1  mr-4 font-medium bg-transparent focus:outline-none text-xl">
+          Logout
+        </div>
+      </div>
     </div>
   );
 }

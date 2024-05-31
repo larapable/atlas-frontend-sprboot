@@ -175,3 +175,89 @@
 .visualization-feature-container:hover {
   transform: scale(1.1);
 }
+
+/* Remove the default border of the entire calendar */
+.react-calendar {
+  border: none;
+}
+
+/* Alternatively, change the border color to white */
+.react-calendar {
+  border: 1px solid white !important;
+  width: 50rem;
+  height: 27rem;
+}
+
+/* Adjust the border of individual tiles if needed */
+.react-calendar__tile {
+  border: 1px solid white !important;
+  margin: 2px;
+  font-size: 1rem !important;
+  gap: 2rem;
+}
+
+/* Highlight today's date with custom styling */
+.react-calendar__tile--now {
+  background: orange !important;
+  color: white !important;
+  border-radius: 50%;
+  border-radius: 50%;
+  font-size: 1rem;
+  gap: 2rem;
+}
+
+.react-calendar__month-view__weekdays__weekday,
+.react-calendar__month-view__days__day,
+.react-calendar__navigation__label__labelText {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  text-decoration: none !important;
+}
+
+.react-calendar a {
+  text-decoration: none !important;
+}
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+  text-transform: capitalize !important;
+}
+
+.react-calendar__month-view__days__day--weekend {
+  color: rgb(255, 138, 4) !important;
+}
+
+.react-calendar__navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 2rem;
+  padding: 1rem;
+  margin-top: 2rem;
+  gap: 1rem;
+}
+
+/* Styling for the month name */
+.react-calendar__navigation__label {
+  font-size: 2rem !important;
+  font-weight: bold;
+  color: #333;
+  margin-top: 2rem;
+}
+
+/* Styling for the previous and next buttons */
+.react-calendar__navigation__arrow {
+  font-size: 1.5rem;
+  color: #fff;
+  background: rgba(245, 211, 147, 0.986) !important;
+  width: 2rem !important;
+  height: 3rem !important;
+  border-radius: 2rem !important;
+}
+
+/* Ensure navigation buttons have no underline */
+.react-calendar__navigation__arrow:link,
+.react-calendar__navigation__arrow:visited,
+.react-calendar__navigation__arrow:hover,
+.react-calendar__navigation__arrow:active {
+  text-decoration: none;
+}

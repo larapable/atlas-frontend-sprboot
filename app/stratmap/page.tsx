@@ -1070,7 +1070,7 @@ const Page = () => {
                       <div className="mt-1">Add more strategies</div>
                     </button>
                     {isFModalOpen && (
-                      <div className="fixed inset-0 flex items-center justify-center">
+                      <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="absolute inset-0 bg-black opacity-50"></div>
                         <div className="bg-white p-8 rounded-lg z-10 h-[29rem] w-[70rem]">
                           <div className="flex flex-row">
@@ -1221,7 +1221,7 @@ const Page = () => {
                       <div className="mt-1">Add more strategies</div>
                     </button>
                     {isLGModalOpen && (
-                      <div className="fixed inset-0 flex items-center justify-center">
+                      <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="absolute inset-0 bg-black opacity-50"></div>
                         <div className="bg-white p-8 rounded-lg z-10 h-[29rem] w-[70rem]">
                           <div className="flex flex-row">
@@ -1370,7 +1370,7 @@ const Page = () => {
                       <div className="mt-1">Add more strategies</div>
                     </button>
                     {isIPModalOpen && (
-                      <div className="fixed inset-0 flex items-center justify-center">
+                      <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="absolute inset-0 bg-black opacity-50"></div>
                         <div className="bg-white p-8 rounded-lg z-10 h-[29rem] w-[70rem]">
                           <div className="flex flex-row">
@@ -1521,7 +1521,7 @@ const Page = () => {
                       <div className="mt-1">Add more strategies</div>
                     </button>
                     {isSModalOpen && (
-                      <div className="fixed inset-0 flex items-center justify-center">
+                      <div className="fixed inset-0 flex items-center justify-center z-50">
                         <div className="absolute inset-0 bg-black opacity-50"></div>
                         <div className="bg-white p-8 rounded-lg z-10 h-[29rem] w-[70rem]">
                           <div className="flex flex-row">

@@ -14,7 +14,9 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(
+    null
+  );
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successModal, setSuccessModal] = useState(false);
@@ -57,8 +59,7 @@ export default function SignupPage() {
       setErrorModalOpen(true);
       return;
     }
-    
-    
+
     // Check if password meets requirements
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
@@ -71,13 +72,16 @@ export default function SignupPage() {
     }
 
     try {
-      const resUserExists = await fetch("http://localhost:8080/user/userExists", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, username }),
-      });
+      const resUserExists = await fetch(
+        "http://localhost:8080/user/userExists",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, username }),
+        }
+      );
 
       const { user, userName } = await resUserExists.json(); // Assuming the server responds with both user and userName
 
@@ -86,7 +90,7 @@ export default function SignupPage() {
         setErrorModalOpen(true);
         return;
       }
-      
+
       const res = await fetch("http://localhost:8080/user/insert", {
         method: "POST",
         headers: {
@@ -102,7 +106,7 @@ export default function SignupPage() {
         }),
       });
       const data = await res.json();
-      console.log("data:",data);
+      console.log("data:", data);
       if (res.ok) {
         console.log("Signup successful");
         // Clear input fields after successful signup
@@ -113,7 +117,6 @@ export default function SignupPage() {
         setSelectedDepartment(0);
         setSuccessModal(true);
         router.push("/login");
-      
       } else {
         console.log("User registration failed.");
       }
@@ -124,7 +127,9 @@ export default function SignupPage() {
 
   useEffect(() => {
     const fetchDepartments = async () => {
-      const res = await fetch("http://localhost:8080/department/getAllDepartments");
+      const res = await fetch(
+        "http://localhost:8080/department/getAllDepartments"
+      );
       const data = await res.json();
       setDepartments(data.departments);
     };
@@ -139,18 +144,19 @@ export default function SignupPage() {
           Sign Up
         </div>
         <div className="border-[0.1rem] border-solid border-black border-opacity-60 rounded-lg w-[38rem] flex items-center mb-6 py-4">
-        <select
-          value={selectedDepartment || ''}
-          onChange={(e) => setSelectedDepartment(parseInt(e.target.value))}
-          className="flex-1 font-medium bg-transparent focus:outline-none text-[1rem] px-3 py-1 ml-4 mr-4"
-        >
-          <option value="">Select a department</option>
-          {departments && departments.map((department) => (
-          <option key={department.id} value={department.id}>
-            {department.department_name}
-          </option>
-        ))}
-        </select>
+          <select
+            value={selectedDepartment || ""}
+            onChange={(e) => setSelectedDepartment(parseInt(e.target.value))}
+            className="flex-1 font-medium bg-transparent focus:outline-none text-[1rem] px-3 py-1 ml-4 mr-4"
+          >
+            <option value="">Select a department</option>
+            {departments &&
+              departments.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.department_name}
+                </option>
+              ))}
+          </select>
         </div>
         <div className="border-[0.1rem] border-solid border-black border-opacity-60 rounded-lg w-[38rem] mb-6 py-4 flex items-center">
           <input
@@ -191,7 +197,8 @@ export default function SignupPage() {
           </div>
         </div>
         <button
-          className="rounded-lg bg-[#8a252c] text-white font-bold text-xl w-[38rem] px-12 py-5 border[0.1rem] border-white mb-4 hover:bg-[#eec160] hover:text-[#8a252c] "
+          style={{ background: "linear-gradient(to left, #8a252c, #AB3510)" }}
+          className="rounded-lg text-white font-bold text-xl w-[38rem] px-12 py-5 border[0.1rem] border-white mb-4 hover:bg-[#eec160] hover:text-[#8a252c] "
           onClick={handleSubmit}
         >
           Sign Up
@@ -208,13 +215,16 @@ export default function SignupPage() {
           <div className="flex-1 bg-[#807979] h-0.5 w-[17.3rem]"></div>
         </div>
         <a
-          href="/department"
+          href="/"
           className="text-2xl text-[#8a252c] font-bold lg:mt-4 md:mb-16 hover:underline"
         >
-          Register Department
+          Back Home
         </a>
       </div>
-      <div className="flex flex-col items-center bg-[#8a252c] lg:w-full lg:ml-[12%] md:w-full">
+      <div
+        style={{ background: "linear-gradient(to left, #8a252c, #AB3510)" }}
+        className="flex flex-col items-center lg:w-full lg:ml-[12%] md:w-full"
+      >
         <img
           src="wc-screen-scorecard.png"
           className="w-28 h-28 mt-24 lg:mr-96 md:mr-[60%] mb-4 hover:scale-110 transition-transform"

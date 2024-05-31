@@ -10,8 +10,6 @@ interface FinancialScorecard {
   target_code: string;
   startDate: Date;
   completionDate: Date;
-  startDate: Date;
-  completionDate: Date;
   office_target: string;
   status: string;
   key_performance_indicator: string;
@@ -233,7 +231,7 @@ export default function Financial() {
             scorecard.id === financialEditMode ? updatedScorecard : scorecard
           )
         );
-        //toast.success("Scorecard updated successfully!"); 
+        //toast.success("Scorecard updated successfully!");
         window.location.reload();
       } else {
         toast.error(`Failed to update scorecard: ${result.message}`);

@@ -6,22 +6,6 @@ import StakeholderEntity from "/models/stratmap/stakeholder";
 export async function GET(request, { params }) {
   const department_id = params.department_id;
 
-  // Check if departmentIdStr is a valid number
-  // const isValidNumber = /^[0-9]+$/.test(departmentIdStr);
-
-  // if (isValidNumber) {
-  //   department_id = Number(departmentIdStr);
-
-  //   if (isNaN(department_id)) {
-  //     return new Response(JSON.stringify({ error: `Invalid department ID,${department_id}` }), {
-  //       status: 400,
-  //     });
-  //   }
-  // } else {
-  //   return new Response(JSON.stringify({ error: `Invalid department ID,${department_id}` }), {
-  //     status: 400,
-  //   });
-  // }
 
   console.log("dept id: ", department_id);
 
