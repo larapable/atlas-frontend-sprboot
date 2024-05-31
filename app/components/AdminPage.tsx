@@ -184,7 +184,6 @@ const AdminPage = () => {
 
   return (
     <div className="flex flex-row">
-      <Navbar />
       <div className="flex-1 flex flex-col mt-[-0.5rem] ml-[6.5rem] gap-20 mb-10">
         <div className="flex flex-row gap-5">
           <div className="bg-white h-[13rem] w-[63rem] shadow-[0rem_0.3rem_0.3rem_0rem_rgba(0,0,0,0.15)] rounded-lg">
