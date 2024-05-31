@@ -8,8 +8,8 @@ import { toast } from "react-toastify";
 interface FinancialScorecard {
   id: number;
   target_code: string;
-  start_date: Date;
-  completion_date: Date;
+  startDate: Date;
+  completionDate: Date;
   office_target: string;
   status: string;
   key_performance_indicator: string;
@@ -132,23 +132,26 @@ export default function Financial() {
 
     try {
       // Send the POST request to the server
-      const response = await fetch("http://localhost:8080/bsc/financialBsc/insert", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          department: {id: department_id}, // Ensure you have this variable defined or passed in
-          target_code: financialTargetCode,
-          office_target: financialOfficeTarget,
-          startDate: financialStartDate,
-          completionDate: financialTargetCompletionDate,
-          status: financialStatus,
-          key_performance_indicator: financialKPI,
-          target_performance: financialTargetPerformance,
-          actual_performance: financialActualPerformance,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:8080/bsc/financialBsc/insert",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            department: { id: department_id }, // Ensure you have this variable defined or passed in
+            target_code: financialTargetCode,
+            office_target: financialOfficeTarget,
+            startDate: financialStartDate,
+            completionDate: financialTargetCompletionDate,
+            status: financialStatus,
+            key_performance_indicator: financialKPI,
+            target_performance: financialTargetPerformance,
+            actual_performance: financialActualPerformance,
+          }),
+        }
+      );
 
       // Parse the JSON response
       const result = await response.json();
@@ -199,23 +202,26 @@ export default function Financial() {
     if (!financialEditMode) return; // Exit if not in edit mode
 
     try {
-      const response = await fetch(`/api/financialBSC/${financialEditMode}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: financialEditMode, // Include the ID of the scorecard to update
-          target_code: financialTargetCode,
-          office_target: financialOfficeTarget,
-          start_date: financialStartDate,
-          completion_date: financialTargetCompletionDate,
-          status: financialStatus,
-          key_performance_indicator: financialKPI,
-          target_performance: financialTargetPerformance,
-          actual_performance: financialActualPerformance,
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:8080/bsc/financial/update/${financialEditMode}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: financialEditMode, // Include the ID of the scorecard to update
+            target_code: financialTargetCode,
+            office_target: financialOfficeTarget,
+            startDate: financialStartDate,
+            completionDate: financialTargetCompletionDate,
+            status: financialStatus,
+            key_performance_indicator: financialKPI,
+            target_performance: financialTargetPerformance,
+            actual_performance: financialActualPerformance,
+          }),
+        }
+      );
 
       const result = await response.json();
       if (response.ok) {
@@ -225,26 +231,14 @@ export default function Financial() {
             scorecard.id === financialEditMode ? updatedScorecard : scorecard
           )
         );
-        toast.success("Scorecard updated successfully!");
+        //toast.success("Scorecard updated successfully!"); 
+        window.location.reload();
       } else {
         toast.error(`Failed to update scorecard: ${result.message}`);
       }
     } catch (error) {
       toast.error("Error updating scorecard. Please try again.");
     }
-
-    // Reset modal state after update
-    setFinancialModalOpen(false);
-    setFinancialEditMode(null);
-    // Reset other form states
-    setFinancialTargetCode("");
-    setFinancialStartDate(null);
-    setFinancialTargetCompletionDate(null);
-    setFinancialOfficeTarget("");
-    setFinancialTargetPerformance("");
-    setFinancialStatus("");
-    setFinancialKPI("");
-    setFinancialActualPerformance("");
   };
 
   // Determine which function to call when the save button is clicked
@@ -265,7 +259,10 @@ export default function Financial() {
         console.log("Department ID is not available yet.");
         return;
       }
-
+      console.log(
+        "Fetching financial scorecards for department ID:",
+        department_id
+      );
       try {
         const response = await fetch(
           `http://localhost:8080/bsc/financial/get/${department_id}`
@@ -275,7 +272,7 @@ export default function Financial() {
         }
         const data = await response.json();
         console.log("Financial scorecards data:", data);
-        setFinancialSavedScorecards(data.financial_bsc);
+        setFinancialSavedScorecards(data);
       } catch (error) {
         console.error("Error fetching financial scorecards:", error);
       }
@@ -316,13 +313,13 @@ export default function Financial() {
     );
     if (scorecardToEdit) {
       // Convert the start date and completion date to the local timezone before setting them
-      const startDate = new Date(scorecardToEdit.start_date);
+      const startDate = new Date(scorecardToEdit.startDate);
       startDate.setMinutes(
         startDate.getMinutes() - startDate.getTimezoneOffset()
       );
       setFinancialStartDate(startDate);
 
-      const completionDate = new Date(scorecardToEdit.completion_date);
+      const completionDate = new Date(scorecardToEdit.completionDate);
       completionDate.setMinutes(
         completionDate.getMinutes() - completionDate.getTimezoneOffset()
       );
@@ -383,8 +380,10 @@ export default function Financial() {
         {financialSavedScorecards &&
           financialSavedScorecards.length > 0 &&
           financialSavedScorecards.map((item) => {
+            if (!item) return null; // Skip rendering if item is undefined
+            const actualPerformance = item.actual_performance || "0";
             const levelOfAttainment = calculateFinancialLevelOfAttainment(
-              parseFloat(item.actual_performance),
+              parseFloat(actualPerformance),
               parseFloat(item.target_performance)
             );
 
@@ -427,8 +426,8 @@ export default function Financial() {
                     </div>
                     <div className="flex items-center w-[35rem]">
                       <span className="font-regular mr-5 ml-10">
-                        {item.completion_date
-                          ? new Date(item.completion_date).toLocaleDateString()
+                        {item.completionDate
+                          ? new Date(item.completionDate).toLocaleDateString()
                           : "N/A"}
                       </span>
                       <div

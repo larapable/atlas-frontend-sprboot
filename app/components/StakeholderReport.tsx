@@ -94,11 +94,14 @@ export default function StakeholderReport() {
           department_id: department_id,
         };
         //console.log("financial date: ", stakeholderDateReport);
-        const response = await fetch(`/api/report/stakeholder/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // Send the updated report object
-        });
+        const response = await fetch(
+          `http://localhost:8080/stakeholderReport/updateStakeholderReport/${id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data), // Send the updated report object
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to update financial report");
@@ -126,17 +129,22 @@ export default function StakeholderReport() {
       try {
         const data = {
           title: stakeholderTitleReport,
-          dateCreated: stakeholderDateReport?.toISOString(),
+          dateCreated: new Date(
+            stakeholderDateReport?.getTime() + 24 * 60 * 60 * 1000
+          ),
           description: stakeholderDescriptionReport,
           objectives: stakeholderSelectedObjectivesReport,
           department_id: department_id,
         };
         console.log("stakeholder date: ", stakeholderDateReport);
-        const response = await fetch("/api/report/stakeholder", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // Send the new report object
-        });
+        const response = await fetch(
+          `http://localhost:8080/stakeholderReport/insertStakeholderReport/${department_id}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data), // Send the new report object
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to create stakeholder report");
@@ -168,9 +176,12 @@ export default function StakeholderReport() {
 
   const handleDeleteStakeholderReport = async (report: StakeholderReports) => {
     try {
-      const response = await fetch(`/api/report/stakeholder/${report.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8080/stakeholderReport/deleteStakeholderReport/${report.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete stakeholder report");
@@ -192,8 +203,14 @@ export default function StakeholderReport() {
   };
 
   const getAllStakeholder = async (department_id: number) => {
+    if (!department_id) {
+      console.log("Department ID is not available yet.");
+      return;
+    }
     try {
-      const response = await fetch(`/api/report/stakeholder/${department_id}`);
+      const response = await fetch(
+        `http://localhost:8080/stakeholderReport/getAllStakeholderReport`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch stakeholder reports");
       }
@@ -311,13 +328,13 @@ export default function StakeholderReport() {
 
       try {
         const response = await fetch(
-          `/api/getStakeholderScorecard/${department_id}`
+          `http://localhost:8080/bsc/stakeholder/get/${department_id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch stakeholder scorecards");
         }
         const data = await response.json();
-        setStakeholderScorecards(data.stakeholder_bsc);
+        setStakeholderScorecards(data);
       } catch (error) {
         console.error("Error fetching stakeholder scorecards:", error);
       }
@@ -485,7 +502,7 @@ export default function StakeholderReport() {
                 </span>
                 <DatePicker
                   selected={stakeholderDateReport}
-                  onChange={handleDateChange}
+                  onChange={(date) => setStakeholderDateReport(date)}
                   minDate={new Date()}
                   maxDate={new Date()}
                   placeholderText="YYYY-MM-DD"

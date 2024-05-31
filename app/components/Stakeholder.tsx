@@ -8,8 +8,8 @@ import { toast } from "react-toastify";
 interface StakeholderScorecard {
   id: number;
   target_code: string;
-  start_date: Date;
-  completion_date: Date;
+  startDate: Date;
+  completionDate: Date;
   office_target: string;
   status: string;
   key_performance_indicator: string;
@@ -131,25 +131,29 @@ export default function Stakeholder() {
 
     try {
       // Send the POST request to the server
-      const response = await fetch("/api/stakeholderBSC", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          department_id: department_id,
-          target_code: stakeholderTargetCode,
-          start_date: stakeholderStartDate,
-          completion_date: stakeholderTargetCompletionDate,
-          office_target: stakeholderOfficeTarget,
-          status: stakeholderStatus,
-          key_performance_indicator: stakeholderKPI,
-          target_performance: stakeholderTargetPerformance,
-          actual_performance: stakeholderActualPerformance,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:8080/bsc/stakeholderBsc/insert",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            department: { id: department_id },
+            target_code: stakeholderTargetCode,
+            office_target: stakeholderOfficeTarget,
+            startDate: stakeholderStartDate,
+            completionDate: stakeholderTargetCompletionDate,
+            status: stakeholderStatus,
+            key_performance_indicator: stakeholderKPI,
+            target_performance: stakeholderTargetPerformance,
+            actual_performance: stakeholderActualPerformance,
+          }),
+        }
+      );
       // Parse the JSON response
       const result = await response.json();
+      console.log("Result", result);
 
       // Handle the response based on the status code
       if (response.ok) {
@@ -196,23 +200,26 @@ export default function Stakeholder() {
     if (!stakeholderEditMode) return; // Exit if not in edit mode
 
     try {
-      const response = await fetch(`/api/stakeholderBSC/${stakeholderEditMode}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: stakeholderEditMode,
-          target_code: stakeholderTargetCode,
-          start_date: stakeholderStartDate,
-          completion_date: stakeholderTargetCompletionDate,
-          office_target: stakeholderOfficeTarget,
-          status: stakeholderStatus,
-          key_performance_indicator: stakeholderKPI,
-          target_performance: stakeholderTargetPerformance,
-          actual_performance: stakeholderActualPerformance,
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:8080/bsc/stakeholder/update/${stakeholderEditMode}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: stakeholderEditMode,
+            target_code: stakeholderTargetCode,
+            startDate: stakeholderStartDate,
+            completionDate: stakeholderTargetCompletionDate,
+            office_target: stakeholderOfficeTarget,
+            status: stakeholderStatus,
+            key_performance_indicator: stakeholderKPI,
+            target_performance: stakeholderTargetPerformance,
+            actual_performance: stakeholderActualPerformance,
+          }),
+        }
+      );
 
       const result = await response.json();
       if (response.ok) {
@@ -222,7 +229,8 @@ export default function Stakeholder() {
             scorecard.id === stakeholderEditMode ? updatedScorecard : scorecard
           )
         );
-        toast.success("Scorecard updated successfully.");
+        //toast.success("Scorecard updated successfully.");
+        window.location.reload();
       } else {
         toast.error(`Failed to update scorecard: ${result.message}`);
       }
@@ -262,13 +270,13 @@ export default function Stakeholder() {
 
       try {
         const response = await fetch(
-          `/api/getStakeholderScorecard/${department_id}`
+          `http://localhost:8080/bsc/stakeholder/get/${department_id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch stakeholder scorecards");
         }
         const data = await response.json();
-        setStakeholderSavedScorecards(data.stakeholder_bsc);
+        setStakeholderSavedScorecards(data);
       } catch (error) {
         console.error("Error fetching stakeholder scorecards:", error);
       }
@@ -309,13 +317,13 @@ export default function Stakeholder() {
     );
     if (scorecardToEdit) {
       // Convert the start date and completion date to the local timezone before setting them
-      const startDate = new Date(scorecardToEdit.start_date);
+      const startDate = new Date(scorecardToEdit.startDate);
       startDate.setMinutes(
         startDate.getMinutes() - startDate.getTimezoneOffset()
       );
       setStakeholderStartDate(startDate);
 
-      const completionDate = new Date(scorecardToEdit.completion_date);
+      const completionDate = new Date(scorecardToEdit.completionDate);
       completionDate.setMinutes(
         completionDate.getMinutes() - completionDate.getTimezoneOffset()
       );
@@ -376,6 +384,7 @@ export default function Stakeholder() {
         {stakeholderSavedScorecards &&
           stakeholderSavedScorecards.length > 0 &&
           stakeholderSavedScorecards.map((item) => {
+            if (!item) return null;
             const levelOfAttainment = calculateStakeholderLevelOfAttainment(
               parseFloat(item.actual_performance),
               parseFloat(item.target_performance)
@@ -420,8 +429,8 @@ export default function Stakeholder() {
                     </div>
                     <div className="flex items-center w-[35rem]">
                       <span className="font-regular mr-5 ml-10">
-                        {item.completion_date
-                          ? new Date(item.completion_date).toLocaleDateString()
+                        {item.completionDate
+                          ? new Date(item.completionDate).toLocaleDateString()
                           : "N/A"}
                       </span>
                       <div

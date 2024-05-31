@@ -13,7 +13,7 @@ Chart.register(LinearScale);
 interface FinancialReport {
   id: number;
   title: string;
-  date_created: Date | null;
+  dateCreated: Date | null;
   description: string;
   objectives: string[];
 }
@@ -78,14 +78,13 @@ export default function FinancialReport() {
         const id = financialID;
         const data = {
           title: financialTitleReport,
-          //dateCreated: financialDateReport?.toISOString(),
           description: financialDescriptionReport,
           objectives: financialSelectedObjectivesReport,
           department_id: department_id,
         };
         //console.log("financial date: ", financialDateReport);
         const response = await fetch(
-          `http://localhost:8080/financialReport/updateFinancialReport/${department_id}`,
+          `http://localhost:8080/financialReport/updateFinancialReport/${id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -109,7 +108,8 @@ export default function FinancialReport() {
       if (
         !financialDateReport ||
         !financialTitleReport ||
-        !financialDescriptionReport
+        !financialDescriptionReport ||
+        financialSelectedObjectivesReport.length === 0
       ) {
         toast.error("Please fill out all the fields.");
         return;
@@ -118,12 +118,12 @@ export default function FinancialReport() {
       try {
         const data = {
           title: financialTitleReport,
-          date_created: new Date(
+          dateCreated: new Date(
             financialDateReport?.getTime() + 24 * 60 * 60 * 1000
           ),
           description: financialDescriptionReport,
-          //objectives: financialSelectedObjectivesReport,
-          //department_id: department_id,
+          objectives: financialSelectedObjectivesReport,
+          department_id: department_id,
         };
         console.log("financial date: ", financialDateReport);
         const response = await fetch(
@@ -166,9 +166,12 @@ export default function FinancialReport() {
 
   const handleDeleteFinancialReport = async (report: FinancialReport) => {
     try {
-      const response = await fetch(`/api/report/financial/${report.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8080/financialReport/deleteFinancialReport/${report.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete financial report");
@@ -190,13 +193,14 @@ export default function FinancialReport() {
       return;
     }
     try {
-      const response = await fetch(`/api/report/financial/${department_id}`);
+      const response = await fetch(
+        `http://localhost:8080/financialReport/getAllFinancialReport`
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch financial reports");
       }
       const data = await response.json();
       console.log("response data:", data);
-
       setFinancialReports(data);
       console.log(data);
     } catch (error) {
@@ -316,20 +320,20 @@ export default function FinancialReport() {
 
       try {
         const response = await fetch(
-          `../api/getFinancialScorecard/${department_id}`
+          `http://localhost:8080/bsc/financial/get/${department_id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch financial scorecards");
         }
         const data = await response.json();
-        setFinancialScorecards(data.financial_bsc);
+        setFinancialScorecards(data);
       } catch (error) {
         console.error("Error fetching financial scorecards:", error);
       }
     };
 
     fetchFinancialScorecards();
-  }, [department_id, session]);
+  }, [department_id]);
 
   const objectives = financialScorecards.map((scorecard, index) => ({
     value: scorecard.id.toString(),
@@ -397,8 +401,8 @@ export default function FinancialReport() {
               </div>
 
               <p className="mt-1 text-gray-400">
-                {report.date_created
-                  ? new Date(report.date_created).toLocaleDateString()
+                {report.dateCreated
+                  ? new Date(report.dateCreated).toLocaleDateString()
                   : "No date"}
               </p>
             </div>
@@ -492,7 +496,7 @@ export default function FinancialReport() {
                 </span>
                 <DatePicker
                   selected={financialDateReport}
-                  onChange={(date) => handleDateChange(date)}
+                  onChange={(date) => setFinancialDateReport(date)}
                   minDate={new Date()}
                   maxDate={new Date()}
                   placeholderText="MM-DD-YYYY"

@@ -52,11 +52,9 @@ export default function LearningReport() {
   ] = useState<string[]>([]);
   const [isLearningEditModeReport, setIsLearningEditModeReport] =
     useState(false);
-  // const [learningSelectedReport, setLearningSelectedReport] =
-  //   useState<null | LearningReport>(null);
+
   const [learningReports, setLearningReports] = useState<LearningReport[]>([]);
-  // const [learningShowContainerReport, setLearningShowContainerReport] =
-  //   useState(false);
+
   const [editingLearningReport, setEditingLearningReport] =
     useState<LearningReport | null>(null);
 
@@ -65,11 +63,6 @@ export default function LearningReport() {
   const handleCloseModalLearningReport = () => {
     setLearningModalOpenReport(false);
   };
-
-  // const handleToggleContainerLearningReport = (report: LearningReport) => {
-  //   setLearningSelectedReport(report);
-  //   setLearningShowContainerReport(!learningShowContainerReport);
-  // };
 
   const handleAddMoreLearningReport = () => {
     setLearningModalOpenReport(true);
@@ -86,16 +79,18 @@ export default function LearningReport() {
         const id = learningID;
         const data = {
           title: learningTitleReport,
-          //dateCreated: learningDateReport?.toISOString(),
           description: learningDescriptionReport,
           objectives: learningSelectedObjectivesReport,
           department_id: department_id,
         };
-        const response = await fetch(`/api/report/learningGrowth/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // Send the updated report object
-        });
+        const response = await fetch(
+          `http://localhost:8080/learningReport/updateLearningReport/${id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data), // Send the updated report object
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to update lg report");
@@ -109,20 +104,36 @@ export default function LearningReport() {
         console.error("Error updating lg report:", error);
       }
     } else {
+      // Create a new report
+      if (
+        !learningTitleReport ||
+        !learningDescriptionReport ||
+        learningSelectedObjectivesReport.length === 0
+      ) {
+        toast.error("Please fill out all the fields.");
+        return;
+      }
+
       try {
         const data = {
           title: learningTitleReport,
-          dateCreated: learningDateReport?.toISOString(),
+          dateCreated: new Date(
+            // @ts-ignore
+            learningDateReport?.getTime() + 24 * 60 * 60 * 1000
+          ),
           description: learningDescriptionReport,
           objectives: learningSelectedObjectivesReport,
           department_id: department_id,
         };
-
-        const response = await fetch("/api/report/learningGrowth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // Send the new report object
-        });
+        console.log("financial date: ", learningDateReport);
+        const response = await fetch(
+          `http://localhost:8080/learningReport/insertLearningReport/${department_id}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data), // Send the new report object
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to create lg report");
@@ -139,6 +150,7 @@ export default function LearningReport() {
     setIsLearningEditModeReport(false);
     setEditingLearningReport(null);
   };
+
   const handleEditLearningReport = (report: LearningReport) => {
     setEditingLearningReport(report);
     setLearningTitleReport(report.title);
@@ -149,11 +161,15 @@ export default function LearningReport() {
     setLearningModalOpenReport(true);
     setIsLearningEditModeReport(true);
   };
+
   const handleDeleteLearningReport = async (report: LearningReport) => {
     try {
-      const response = await fetch(`/api/report/learningGrowth/${report.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8080/learningReport/deleteLearningReport/${report.id}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to delete lg report");
       }
@@ -173,9 +189,14 @@ export default function LearningReport() {
   };
 
   const getAllLearning = async (department_id: number) => {
+    if (!department_id) {
+      console.log("Department ID is not available yet.");
+      return;
+    }
+
     try {
       const response = await fetch(
-        `/api/report/learningGrowth/${department_id}`
+        `http://localhost:8080/learningReport/getAllLearningReport`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch financial reports");
@@ -293,13 +314,13 @@ export default function LearningReport() {
 
       try {
         const response = await fetch(
-          `/api/getLearningScorecard/${department_id}`
+          `http://localhost:8080/bsc/learning/get/${department_id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch learning scorecards");
         }
         const data = await response.json();
-        setLearningScorecards(data.learning_bsc);
+        setLearningScorecards(data);
       } catch (error) {
         console.error("Error fetching learning scorecards:", error);
       }
@@ -469,7 +490,7 @@ export default function LearningReport() {
                 </span>
                 <DatePicker
                   selected={learningDateReport}
-                  onChange={handleDateChange}
+                  onChange={(date) => setLearningDateReport(date)}
                   minDate={new Date()}
                   maxDate={new Date()}
                   placeholderText="YYYY-MM-DD"

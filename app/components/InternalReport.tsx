@@ -85,11 +85,14 @@ export default function InternalReport() {
           department_id: department_id,
         };
         //console.log("IP date: ", internalDateReport);
-        const response = await fetch(`/api/report/internalProcess/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // Send the updated report object
-        });
+        const response = await fetch(
+          `http://localhost:8080/internalReport/updateInternalReport/${id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data), // Send the updated report object
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to update stakeholder report");
@@ -117,17 +120,22 @@ export default function InternalReport() {
       try {
         const data = {
           title: internalTitleReport,
-          dateCreated: internalDateReport?.toISOString(),
+          dateCreated: new Date(
+            internalDateReport?.getTime() + 24 * 60 * 60 * 1000
+          ),
           description: internalDescriptionReport,
           objectives: internalSelectedObjectivesReport,
           department_id: department_id,
         };
         console.log("stakeholder date: ", internalDateReport);
-        const response = await fetch("/api/report/internalProcess", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data), // Send the new report object
-        });
+        const response = await fetch(
+          `http://localhost:8080/internalReport/insertInternalReport/${department_id}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data), // Send the new report object
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to create IP report");
@@ -161,9 +169,12 @@ export default function InternalReport() {
 
   const handleDeleteInternalReport = async (report: InternalReport) => {
     try {
-      const response = await fetch(`/api/report/internalProcess/${report.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8080/internalReport/deleteInternalReport/${report.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to delete IP report");
@@ -185,12 +196,17 @@ export default function InternalReport() {
   };
 
   const getAllInternal = async (department_id: number) => {
+    if (!department_id) {
+      console.log("Department ID is not available yet.");
+      return;
+    }
+
     try {
       const response = await fetch(
-        `/api/report/internalProcess/${department_id}`
+        `http://localhost:8080/internalReport/getAllInternalReport`
       );
       if (!response.ok) {
-        throw new Error("Failed to fetch financial reports");
+        throw new Error("Failed to fetch internal reports");
       }
       const data = await response.json();
       console.log("response data:", data);
@@ -307,13 +323,13 @@ export default function InternalReport() {
 
       try {
         const response = await fetch(
-          `/api/getInternalScorecard/${department_id}`
+          `http://localhost:8080/bsc/internal/get/${department_id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch internal scorecards");
         }
         const data = await response.json();
-        setInternalScorecards(data.internal_bsc);
+        setInternalScorecards(data);
       } catch (error) {
         console.error("Error fetching internal scorecards:", error);
       }
