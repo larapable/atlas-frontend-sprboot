@@ -2,8 +2,9 @@
 import { useSession } from "next-auth/react";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import { toast } from "react-toastify";
 
-const Page = () => {
+const StrategyMapping = () => {
   const { data: session } = useSession();
 
   let user;
@@ -340,19 +341,23 @@ const Page = () => {
   const handleInternalProcessSaveEdit = async (
     fID: number,
     office_target: string,
-    department_id: number) => {
+    department_id: number
+  ) => {
     try {
       const details = {
         office_target: office_target,
         department: { id: department_id }, // Include the department ID in the payload
       };
-      const response = await fetch(`http://localhost:8080/stratmap/internal/edit/${fID}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(details),
-      });
+      const response = await fetch(
+        `http://localhost:8080/stratmap/internal/edit/${fID}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(details),
+        }
+      );
 
       if (!response.ok) {
         console.error("Failed to update strategy");
@@ -849,6 +854,7 @@ const Page = () => {
         );
         setStrategies({ ...strategies, financial: updatedStrategies });
         fetchExistingStrategies(department_id);
+        toast.success("Financial strategy deleted successfully");
       } else {
         console.error("Failed to delete financial strategy");
       }
@@ -875,6 +881,7 @@ const Page = () => {
         );
         setStrategies({ ...strategies, learningGrowth: updatedStrategies });
         fetchExistingStrategies(department_id);
+        toast.success("Learning & Growth strategy deleted successfully");
       } else {
         console.error("Failed to delete financial strategy");
       }
@@ -901,6 +908,7 @@ const Page = () => {
         );
         setStrategies({ ...strategies, stakeholder: updatedStrategies });
         fetchExistingStrategies(department_id);
+        toast.success("Stakeholder strategy deleted successfully");
       } else {
         console.error("Failed to delete financial strategy");
       }
@@ -911,12 +919,15 @@ const Page = () => {
 
   const handleInternalDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/stratmap/internal/delete/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `http://localhost:8080/stratmap/internal/delete/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (response.ok) {
         const updatedStrategies = strategies.internalProcess.filter(
@@ -924,6 +935,7 @@ const Page = () => {
         );
         setStrategies({ ...strategies, internalProcess: updatedStrategies });
         fetchExistingStrategies(department_id);
+        toast.success("Internal Process strategy deleted successfully");
       } else {
         console.error("Failed to delete financial strategy");
       }
@@ -1458,10 +1470,10 @@ const Page = () => {
                                   onClick={() =>
                                     // @ts-ignore
                                     handleInternalProcessSaveEdit(
-                                    // @ts-ignore
-                                    strategy.fID,
-                                    newStrategyValue,
-                                    department_id
+                                      // @ts-ignore
+                                      strategy.fID,
+                                      newStrategyValue,
+                                      department_id
                                     )
                                   }
                                   className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2"
@@ -1907,4 +1919,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default StrategyMapping;

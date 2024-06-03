@@ -2,7 +2,7 @@
 import AdminNavbar from "../components/AdminNavBar";
 import AdminPage from "../components/AdminPage";
 
-export default function page() {
+export default function AdminDashboardPage() {
   return (
     <div className="flex flex-row">
       <AdminNavbar />
