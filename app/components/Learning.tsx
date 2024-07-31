@@ -5,6 +5,7 @@ import React, { useState, ChangeEvent, KeyboardEvent, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
+import { parse } from "path";
 
 interface LearningScorecard {
   id: number;
@@ -29,9 +30,9 @@ export default function Learning() {
 
   // Learning state variables
   const [learningTargetCode, setLearningTargetCode] = useState("");
-  const [learningStartDate, setLearningStartDate] = useState<Date | null>(null);
+  const [learningStartDate, setLearningStartDate] = useState(new Date());
   const [learningTargetCompletionDate, setLearningTargetCompletionDate] =
-    useState<Date | null>(null);
+    useState(new Date());
   const [learningOfficeTarget, setLearningOfficeTarget] = useState("");
   const [learningTargetPerformance, setLearningTargetPerformance] =
     useState("");
@@ -46,25 +47,62 @@ export default function Learning() {
   >([]);
 
   // Track edit mode
-  const [learningEditMode, setLearningEditMode] = useState<number | null>(null);
+  const [learningEditID, setLearningEditID] = useState(0);
+  const [learningEditMode, setLearningEditMode] =
+    useState<LearningScorecard | null>(null);
 
   const handleLearningCloseModal = () => {
     setLearningModalOpen(false);
     setLearningEditMode(null);
   };
 
+  const handleStartDateChange = (date: Date | null) => {
+    console.log("Selected Start Date", date);
+    if (date) {
+      // Convert the selected date to UTC before saving it
+      const utcDate = new Date(
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+      );
+      setLearningStartDate(utcDate);
+    } else {
+      setLearningStartDate(new Date());
+    }
+  };
+
+  const handleCompletionDateChange = (date: Date | null) => {
+    console.log("Selected Start Date", date);
+    if (date) {
+      // Convert the selected date to UTC before saving it
+      const utcDate = new Date(
+        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+      );
+      setLearningTargetCompletionDate(utcDate);
+    } else {
+      //@ts-ignore
+      setLearningTargetCompletionDate(null);
+    }
+  };
   const handleLearningAddMoreScorecard = () => {
-    setLearningEditMode(null);
-    setLearningModalOpen(true);
     setLearningTargetCode("");
-    setLearningStartDate(null);
+    setLearningStartDate(new Date());
+    //@ts-ignore
     setLearningTargetCompletionDate(null);
     setLearningOfficeTarget("");
-    setLearningTargetPerformance("");
     setLearningStatus("");
     setLearningKPI("");
+    setLearningTargetPerformance("");
     setLearningActualPerformance("");
-    setLearningLevelOfAttainment("");
+    setLearningEditMode(null);
+    setLearningModalOpen(true);
+  };
+
+  // Determine which function to call when the save button is clicked
+  const handleSaveButtonClick = () => {
+    if (learningEditMode) {
+      handleLearningUpdateScorecard();
+    } else {
+      handleLearningSaveScorecard();
+    }
   };
 
   const calculateLearningLevelOfAttainment = (
@@ -76,31 +114,76 @@ export default function Learning() {
     return levelOfAttainmentLearning.toFixed(2) + "%";
   };
 
-  const handleLearningActualPerformanceChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = e.target.value;
-    //Allow backspacea to clear the input
-    if (value === "") {
-      setLearningActualPerformance("");
-      setLearningLevelOfAttainment("0%");
-    } else {
-      const newActualPerformance = parseFloat(value);
-      // Check if the value is a number or not NaN
-      if (!isNaN(newActualPerformance) && newActualPerformance <= 100) {
-        setLearningActualPerformance(newActualPerformance.toString());
-        // Assuming stakeholderTargetPerformance is already set from the database
-        const targetPerformance = parseFloat(learningTargetPerformance);
-        if (targetPerformance > 0) {
-          // Make sure not to divide by zero
-          const newLevelOfAttainment = calculateLearningLevelOfAttainment(
-            newActualPerformance,
-            targetPerformance
-          );
-          setLearningLevelOfAttainment(newLevelOfAttainment);
-        }
+  // const handleLearningActualPerformanceChange = (
+  //   e: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   const value = e.target.value;
+  //   //Allow backspacea to clear the input
+  //   if (value === "") {
+  //     setLearningActualPerformance("");
+  //     setLearningLevelOfAttainment("0%");
+  //   } else {
+  //     const newActualPerformance = parseFloat(value);
+  //     // Check if the value is a number or not NaN
+  //     if (!isNaN(newActualPerformance) && newActualPerformance <= 100) {
+  //       setLearningActualPerformance(newActualPerformance.toString());
+  //       // Assuming stakeholderTargetPerformance is already set from the database
+  //       const targetPerformance = parseFloat(learningTargetPerformance);
+  //       if (targetPerformance > 0) {
+  //         // Make sure not to divide by zero
+  //         const newLevelOfAttainment = calculateLearningLevelOfAttainment(
+  //           newActualPerformance,
+  //           targetPerformance
+  //         );
+  //         setLearningLevelOfAttainment(newLevelOfAttainment);
+  //       }
+  //     }
+  //   }
+  // };
+
+  // Fetch the saved financial scorecards from the server
+  useEffect(() => {
+    const fetchLearningScorecards = async () => {
+      if (!department_id) {
+        console.log("Department ID is not available yet.");
+        return;
       }
-    }
+
+      try {
+        const response = await fetch(
+          `http://localhost:8080/bsc/learning/get/${department_id}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch learning scorecards");
+        }
+        const data = await response.json();
+        setLearningSavedScorecards(data);
+      } catch (error) {
+        console.error("Error fetching learning scorecards:", error);
+      }
+    };
+
+    fetchLearningScorecards();
+  }, [department_id]);
+
+  const handleLearningEditScorecard = (scorecard: LearningScorecard) => {
+    setLearningTargetCode(scorecard.target_code);
+    setLearningStartDate(scorecard.startDate);
+    setLearningTargetCompletionDate(scorecard.completionDate);
+    setLearningOfficeTarget(scorecard.office_target);
+    setLearningStatus(scorecard.status);
+    setLearningKPI(scorecard.key_performance_indicator);
+    setLearningTargetPerformance(scorecard.target_performance);
+    setLearningActualPerformance(scorecard.actual_performance);
+    // setLearningLevelOfAttainment(
+    //   calculateLearningLevelOfAttainment(
+    //     parseFloat(scorecard.actual_performance),
+    //     parseFloat(scorecard.target_performance)
+    //   )
+    // );
+    setLearningEditMode(scorecard);
+    setLearningEditID(scorecard.id);
+    setLearningModalOpen(true);
   };
 
   const handleLearningSaveScorecard = async () => {
@@ -133,11 +216,11 @@ export default function Learning() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            department: { id: department_id },
+            department: { id: department_id }, // Ensure you have this variable defined or passed in
             target_code: learningTargetCode,
+            office_target: learningOfficeTarget,
             startDate: learningStartDate,
             completionDate: learningTargetCompletionDate,
-            office_target: learningOfficeTarget,
             status: learningStatus,
             key_performance_indicator: learningKPI,
             target_performance: learningTargetPerformance,
@@ -145,235 +228,117 @@ export default function Learning() {
           }),
         }
       );
-      // Parse the JSON response
-      const result = await response.json();
 
-      // Handle the response based on the status code
-      if (response.ok) {
-        console.log("Learning scorecard data submitted successfully:", result);
-        // Update the saved scorecards
-        const newScorecard = { ...result.data };
-        setLearningSavedScorecards((prevScorecards) => [
-          ...prevScorecards,
-          newScorecard,
-        ]);
-        // Set the edit mode to the new scorecard's ID
-        setLearningEditMode(newScorecard.id);
-        // Close the modal after saving
-        setLearningModalOpen(false);
-        window.location.reload();
+      if (!response.ok) {
+        throw new Error("Failed to save learning scorecard");
       }
-    } catch (error) {
-      console.error("Error submitting learning scorecard data:", error);
-      // Handle network errors here
-    }
 
-    // Reset modal state for the next input
-    setLearningModalOpen(false);
-    setLearningEditMode(null);
-    setLearningTargetCode("");
-    setLearningStartDate(null);
-    setLearningTargetCompletionDate(null);
-    setLearningOfficeTarget("");
-    setLearningTargetPerformance("");
-    setLearningStatus("");
-    setLearningKPI("");
-    setLearningActualPerformance("");
-    setLearningLevelOfAttainment("");
+      const savedScorecard = await response.json();
+      setLearningSavedScorecards([...learningSavedScorecards, savedScorecard]);
+      toast.success("Learning scorecard saved successfully");
+      handleLearningCloseModal();
+    } catch (error) {
+      console.error("Error saving learning scorecard:", error);
+      toast.error("Error saving learning scorecard");
+    }
   };
 
   const handleLearningUpdateScorecard = async () => {
-    if (!learningEditMode) return; // Exit if not in edit mode
+    if (!learningEditMode) return;
+
+    const updatedScorecard: LearningScorecard = {
+      ...learningEditMode,
+      target_code: learningTargetCode,
+      startDate: learningStartDate,
+      completionDate: learningTargetCompletionDate,
+      office_target: learningOfficeTarget,
+      status: learningStatus,
+      key_performance_indicator: learningKPI,
+      target_performance: learningTargetPerformance,
+      actual_performance: learningActualPerformance,
+    };
 
     try {
       const response = await fetch(
-        `http://localhost:8080/bsc/learning/update/${learningEditMode}`,
+        `http://localhost:8080/bsc/learning/update/${learningEditID}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            id: learningEditMode,
-            target_code: learningTargetCode,
-            startDate: learningStartDate,
-            completionDate: learningTargetCompletionDate,
-            office_target: learningOfficeTarget,
-            status: learningStatus,
-            key_performance_indicator: learningKPI,
-            target_performance: learningTargetPerformance,
-            actual_performance: learningActualPerformance,
-          }),
+          body: JSON.stringify(updatedScorecard),
         }
       );
 
-      const result = await response.json();
-      if (response.ok) {
-        const updatedScorecard = result.data;
-        setLearningSavedScorecards((prevScorecards) =>
-          prevScorecards.map((scorecard) =>
-            scorecard.id === learningEditMode ? updatedScorecard : scorecard
-          )
-        );
-        //toast.success("Scorecard updated successfully.");
-        window.location.reload();
-      } else {
-        toast.error(`Failed to update scorecard: ${result.message}`);
+      if (!response.ok) {
+        throw new Error("Failed to update learning scorecard");
       }
+
+      // Update the saved scorecards with the updated scorecard
+      const updatedScorecards = learningSavedScorecards.map((scorecard) =>
+        scorecard.id === learningEditID ? updatedScorecard : scorecard
+      );
+      setLearningSavedScorecards(updatedScorecards);
+      toast.success("Learning scorecard updated successfully");
+      handleLearningCloseModal();
     } catch (error) {
-      toast.error("Error updating scorecard. Please try again.");
-    }
-
-    // Reset modal state after update
-    setLearningModalOpen(false);
-    setLearningEditMode(null);
-    setLearningTargetCode("");
-    setLearningStartDate(null);
-    setLearningTargetCompletionDate(null);
-    setLearningOfficeTarget("");
-    setLearningStatus("");
-    setLearningKPI("");
-    setLearningTargetPerformance("");
-    setLearningActualPerformance("");
-  };
-
-  // Determine which function to call when the save button is clicked
-  const handleSaveButtonClick = () => {
-    if (learningEditMode) {
-      handleLearningUpdateScorecard();
-    } else {
-      handleLearningSaveScorecard();
-    }
-  };
-
-  // Fetch the saved financial scorecards from the server
-  useEffect(() => {
-    const fetchLearningScorecards = async () => {
-      if (!department_id) {
-        console.log("Department ID is not available yet.");
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `http://localhost:8080/bsc/learning/get/${department_id}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch learning scorecards");
-        }
-        const data = await response.json();
-        setLearningSavedScorecards(data);
-      } catch (error) {
-        console.error("Error fetching learning scorecards:", error);
-      }
-    };
-
-    fetchLearningScorecards();
-  }, [department_id]);
-
-  const handleStartDateChange = (date: Date | null) => {
-    console.log("Selected Start Date", date);
-    if (date) {
-      // Convert the selected date to UTC before saving it
-      const utcDate = new Date(
-        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-      );
-      setLearningStartDate(utcDate);
-    } else {
-      setLearningStartDate(null);
-    }
-  };
-
-  const handleCompletionDateChange = (date: Date | null) => {
-    console.log("Selected Start Date", date);
-    if (date) {
-      // Convert the selected date to UTC before saving it
-      const utcDate = new Date(
-        Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-      );
-      setLearningTargetCompletionDate(utcDate);
-    } else {
-      setLearningTargetCompletionDate(null);
-    }
-  };
-
-  const handleLearningEditScorecard = (id: number) => {
-    const scorecardToEdit = learningSavedScorecards.find(
-      (scorecard) => scorecard.id === id
-    );
-    if (scorecardToEdit) {
-      // Convert the start date and completion date to the local timezone before setting them
-      const startDate = new Date(scorecardToEdit.startDate);
-      startDate.setMinutes(
-        startDate.getMinutes() - startDate.getTimezoneOffset()
-      );
-      setLearningStartDate(startDate);
-
-      const completionDate = new Date(scorecardToEdit.completionDate);
-      completionDate.setMinutes(
-        completionDate.getMinutes() - completionDate.getTimezoneOffset()
-      );
-      setLearningTargetCompletionDate(completionDate);
-
-      // Set the other fields
-      setLearningTargetCode(scorecardToEdit.target_code);
-      setLearningOfficeTarget(scorecardToEdit.office_target);
-      setLearningStatus(scorecardToEdit.status);
-      setLearningKPI(scorecardToEdit.key_performance_indicator);
-      setLearningTargetPerformance(scorecardToEdit.target_performance);
-      setLearningActualPerformance(scorecardToEdit.actual_performance);
-      setLearningLevelOfAttainment(
-        calculateLearningLevelOfAttainment(
-          parseFloat(scorecardToEdit.actual_performance),
-          parseFloat(scorecardToEdit.target_performance)
-        )
-      );
-
-      // Open the modal and enter edit mode
-      setLearningEditMode(id);
-      setLearningModalOpen(true);
+      console.error("Error updating learning scorecard:", error);
+      toast.error("Error updating learning scorecard");
     }
   };
 
   return (
     <div className="flex flex-col">
-      <div className="rounded-[0.3rem] bg-[#8A252C] relative flex flex-row justify-between pt-2 pl-3 pb-2 w-[100%]">
-        <span className="m-[0_0.8rem_0_0] w-[58.7rem] break-words font-bold text-[1.3rem] text-[#FFFFFF]">
-          Learning & Growth Scorecard Overview
-        </span>
-      </div>
-      <div className="flex flex-row self-start box-sizing-border mt-5 mb-5">
-        {/* Add More Scorecard Button */}
-        <button
-          className="flex flex-row break-words font-normal text-[1rem] text-[#686666]"
-          onClick={handleLearningAddMoreScorecard}
-        >
-          <div className="text-[#EFAF21] mr-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-8 h-8"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z"
-                clip-rule="evenodd"
-              />
-            </svg>
+      <div className="flex flex-row">
+        <div className="flex flex-row p-1 w-[85rem] h-auto">
+          <img
+            src="/learning.png"
+            alt=""
+            className=" h-[5rem] mb-5 mr-5 mt-[-0.6rem]"
+          />
+          <div className="flex flex-col">
+            <span className="font-bold text-[1.3rem] text-[rgb(59,59,59)] ml-[-0.5rem]">
+              Learning & Growth Scorecard Overview
+            </span>
+            <span className="font-regular text-[1rem] text-[rgb(59,59,59)] ml-[-0.5rem]">
+              Focuses on innovation, improvement, and development.
+            </span>
           </div>
-          <div className="mt-1">Add more objectives</div>
-        </button>
+        </div>
+        <div className="flex flex-row self-start box-sizing-border mt-5 mb-5">
+          {/* Add More Scorecard Button */}
+          <div className="flex flex-row gap-5 rounded-full w-[2.5rem] h-[2.5rem] bg-[#ff7b00d3] ml-[5rem] pl-[0.25rem] pr-1 pt-1 pb-1">
+            <button
+              className="text-white w-[3rem] h-6 cursor-pointer"
+              onClick={handleLearningAddMoreScorecard}
+            >
+              <div className="flex flex-row">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="size-8"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
         {/* Other perspective toggles */}
       </div>
-      <div className="bg-[#ffffff] gap-2 w-[100%] h-[100%] flex flex-col pt-4 pr-3 pb-6 box-sizing-border rounded-lg border border-yellow-500 overflow-y-auto overflow-x-hidden">
+      <div className="bg-[#ffffff] gap-2 w-[100%] h-[auto] flex flex-col pt-4 pr-3 pb-6 box-sizing-border rounded-lg overflow-y-auto overflow-x-hidden">
         {learningSavedScorecards &&
           learningSavedScorecards.length > 0 &&
-          learningSavedScorecards.map((item) => {
-            if (!item) return null;
+          learningSavedScorecards.map((scorecard, index) => {
+            if (!scorecard) return null;
             const levelOfAttainment = calculateLearningLevelOfAttainment(
-              parseFloat(item.actual_performance),
-              parseFloat(item.target_performance)
+              parseFloat(scorecard.actual_performance),
+              parseFloat(scorecard.target_performance)
             );
 
             // Validate the level of attainment to be between 1 and 100
@@ -395,28 +360,30 @@ export default function Learning() {
 
             return (
               <div
-                key={item.id}
+                key={index}
                 className="bg-[#ffffff] relative ml-2 flex flex-row pt-4 pb-4 w-[90rem] h-auto box-sizing-border"
               >
                 <div className="mr-5 gap-10">
                   <p className="flex flex-row">
                     <div className="w-[45rem] flex flex-row">
                       <span className="font-bold bg-yellow-200 pt-2 pb-2 pr-1 pl-2 text-[#962203] mt-[-0.5rem] mr-3 ml-1">
-                        {item.target_code || "N/A"}:
+                        {scorecard.target_code || "N/A"}:
                       </span>
                       <span className="font-regular">
                         {learningOfficeTarget.length > 60
-                          ? `${(item.office_target || "N/A").substring(
+                          ? `${(scorecard.office_target || "N/A").substring(
                               0,
                               60
                             )}...`
-                          : item.office_target || "N/A"}{" "}
+                          : scorecard.office_target || "N/A"}{" "}
                       </span>
                     </div>
                     <div className="flex items-center w-[35rem]">
                       <span className="font-regular mr-5 ml-10">
-                        {item.completionDate
-                          ? new Date(item.completionDate).toLocaleDateString()
+                        {scorecard.completionDate
+                          ? new Date(
+                              scorecard.completionDate
+                            ).toLocaleDateString()
                           : "N/A"}
                       </span>
                       <div
@@ -429,12 +396,12 @@ export default function Learning() {
                         {validatedLevelOfAttainment}%{" "}
                       </span>
                       <div className="font-bold border rounded-lg bg-yellow-200 border-yellow-500 pt-1 pr-2 pl-2 ml-5 mt-[-0.5rem]  ">
-                        {item.status || "N/A"}{" "}
+                        {scorecard.status || "N/A"}{" "}
                       </div>
                     </div>
                   </p>
                 </div>
-                <button onClick={() => handleLearningEditScorecard(item.id)}>
+                <button onClick={() => handleLearningEditScorecard(scorecard)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -578,7 +545,10 @@ export default function Learning() {
                   className="border border-gray-300 px-3 py-2 mt-1 rounded-lg w-[41rem]"
                   min="1"
                   max="100"
-                  onChange={(e) => setLearningTargetPerformance(e.target.value)}
+                  onChange={(e) => {
+                    const value = Math.min(parseFloat(e.target.value), 100);
+                    setLearningTargetPerformance(value.toString());
+                  }}
                 />
               </div>
 
@@ -597,22 +567,28 @@ export default function Learning() {
                   className="border border-gray-300 px-3 py-2 mt-1 rounded-lg w-[41rem]"
                   min="1"
                   max="100"
-                  onChange={handleLearningActualPerformanceChange}
+                  onChange={(e) => {
+                    const value = Math.min(parseFloat(e.target.value), 100);
+                    setLearningActualPerformance(value.toString());
+                  }}
                 />
               </div>
             </div>
             <div className="flex flex-row justify-center mt-10 gap-10">
               <button
-                onClick={handleSaveButtonClick}
-                className="bg-[#FAD655] text-[#962203] font-semibold hover:bg-white border hover:border-yellow-500 px-4 py-2 mt-4 rounded-lg w-40"
-              >
-                {learningEditMode ? "Edit" : "Save"}
-              </button>
-              <button
                 onClick={handleLearningCloseModal}
-                className="bg-[#FAD655] text-[#962203] font-semibold hover:bg-white border hover:border-yellow-500 px-4 py-2 mt-4 rounded-lg w-40"
+                className="bg-[#ffffff] text-[#962203] font-semibold hover:bg-[#AB3510] hover:text-[#ffffff] px-4 py-2 mt-4 rounded-lg w-40"
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleSaveButtonClick}
+                className="text-[#ffffff] font-semibold px-4 py-2 mt-4 rounded-lg w-40"
+                style={{
+                  background: "linear-gradient(to left, #8a252c, #AB3510)",
+                }}
+              >
+                {learningEditMode ? "Edit" : "Save"}
               </button>
             </div>
           </div>

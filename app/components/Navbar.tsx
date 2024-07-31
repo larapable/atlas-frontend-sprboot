@@ -123,7 +123,7 @@ export default function Navbar() {
           </div>
         </div>
       </Link>
-      <Link href="/report">
+      <Link href="/reports">
         <div className="mx-3 border-[0.1rem] border-solid border-transparent rounded-lg w-[16rem] h-14 mb-3 py-4 px-3 flex items-center text-white hover:bg-[#eec160] hover:text-[#8a252c] transition-colors duration-300">
           <svg
             xmlns="http://www.w3.org/2000/svg"
