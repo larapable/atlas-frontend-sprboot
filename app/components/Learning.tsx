@@ -289,6 +289,7 @@ export default function Learning() {
 
   return (
     <div className="flex flex-col">
+      <div className="flex flex-col">
       <div className="flex flex-row">
         <div className="flex flex-row p-1 w-[85rem] h-auto">
           <img
@@ -329,7 +330,15 @@ export default function Learning() {
             </button>
           </div>
         </div>
-        {/* Other perspective toggles */}
+        </div>
+            <div className="flex flex-row p-4 bg-[#fff6d1] text-[rgb(43,43,43)] ">
+              <div className="w-[10rem] flex items-center font-bold">Target Code</div>
+              <div className="w-[25rem] flex items-center font-bold">Financial Office Target</div>
+              <div className="w-[10rem] flex items-center font-bold">Completion</div>
+              <div className="w-[18rem] flex items-center font-bold">Progress</div>
+              <div className="w-[13rem] flex items-center font-bold">Attainment</div>
+              <div className="w-[10rem] flex items-center font-bold">Status</div>
+            </div>
       </div>
       <div className="bg-[#ffffff] gap-2 w-[100%] h-[auto] flex flex-col pt-4 pr-3 pb-6 box-sizing-border rounded-lg overflow-y-auto overflow-x-hidden">
         {learningSavedScorecards &&
@@ -349,27 +358,30 @@ export default function Learning() {
 
             const progressColor =
               parseFloat(levelOfAttainment) >= 100
-                ? "bg-green-600" // A darker shade of green to indicate full completion
+                ? "bg-orange-400" // A darker shade of green to indicate full completion
                 : parseFloat(levelOfAttainment) >= 50
-                ? "bg-green-500"
-                : "bg-red-500";
+                ? "bg-yellow-300"
+                : "bg-red-600";
 
             const progressBarWidth = `${
               (validatedLevelOfAttainment / 100) * 20
             }rem`; // Adjust the width of the progress bar
 
             return (
+              <div className="relative flex flex-col w-auto h-auto text-[rgb(43,43,43)]">
               <div
-                key={index}
-                className="bg-[#ffffff] relative ml-2 flex flex-row pt-4 pb-4 w-[90rem] h-auto box-sizing-border"
-              >
-                <div className="mr-5 gap-10">
-                  <p className="flex flex-row">
-                    <div className="w-[45rem] flex flex-row">
-                      <span className="font-bold bg-yellow-200 pt-2 pb-2 pr-1 pl-2 text-[#962203] mt-[-0.5rem] mr-3 ml-1">
+                  key={index}
+                  className={`flex flex-row p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-[#fff6d1]'}`}
+                >
+                <div className="flex flex-row w-full">
+                    <div className="w-[10rem] flex flex-row">
+                      <span className="font-semibold text-gray-500">
                         {scorecard.target_code || "N/A"}:
                       </span>
-                      <span className="font-regular">
+                    </div>
+
+                    <div className="w-[25rem] flex items-center">
+                      <span className="font-semibold">
                         {learningOfficeTarget.length > 60
                           ? `${(scorecard.office_target || "N/A").substring(
                               0,
@@ -378,29 +390,33 @@ export default function Learning() {
                           : scorecard.office_target || "N/A"}{" "}
                       </span>
                     </div>
-                    <div className="flex items-center w-[35rem]">
-                      <span className="font-regular mr-5 ml-10">
+
+                    <div className="flex items-center w-[10rem]">
+                      <span className="font-semibold">
                         {scorecard.completionDate
                           ? new Date(
                               scorecard.completionDate
                             ).toLocaleDateString()
                           : "N/A"}
                       </span>
-                      <div
-                        className={`h-5 ${progressColor}`}
-                        style={{ width: progressBarWidth }}
-                      ></div>
                     </div>
-                    <div className="flex items-center ml-[-3rem]">
-                      <span className="font-bold ">
+                    <div className="w-[15rem] flex items-center">
+                      <div className={`h-5 ${progressColor} rounded-md`} style={{ width: progressBarWidth }}></div>
+                    </div>
+
+                    <div className="w-[10rem] flex items-center ml-[5rem]">
+                      <span className="font-semibold ">
                         {validatedLevelOfAttainment}%{" "}
                       </span>
-                      <div className="font-bold border rounded-lg bg-yellow-200 border-yellow-500 pt-1 pr-2 pl-2 ml-5 mt-[-0.5rem]  ">
+                    </div>
+                    
+                    <div className="w-[10rem] flex items-center">
+                      <div className="font-semibold border rounded-lg bg-yellow-200 border-yellow-500 p-2">
                         {scorecard.status || "N/A"}{" "}
                       </div>
                     </div>
-                  </p>
-                </div>
+                
+                <div className="w-[5rem] flex items-center justify-end text-orange-700">
                 <button onClick={() => handleLearningEditScorecard(scorecard)}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -418,6 +434,9 @@ export default function Learning() {
                   </svg>
                 </button>
               </div>
+            </div>
+            </div>
+            </div>
             );
           })}
       </div>
